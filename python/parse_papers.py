@@ -163,10 +163,39 @@ def process_md_files():
 
 
 def generate_readme(data):
-    # 按照年份倒序排序 (如果年份无法转为整数则默认0)
+    # 新增月份解析与多级排序逻辑 ---
+    def get_month_num(m_str):
+        if not m_str: return 0
+        m_str = m_str.lower()
+        # 匹配 BibTeX 中常见的月份格式(缩写、全拼或数字)
+        months_map = {
+            'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6,
+            'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12,
+            '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, '11':11, '12':12
+        }
+        for k, v in months_map.items():
+            if k in m_str: return v
+        return 0
+
     def sort_key(item):
-        year_str = item.get("bibtex_parsed", {}).get("year", "0")
-        return int(year_str) if year_str.isdigit() else 0
+        bib = item.get("bibtex_parsed", {})
+        
+        # 1. 解析年份
+        year_str = bib.get("year", "0")
+        year = int(year_str) if year_str.isdigit() else 0
+        
+        # 2. 解析月份
+        month_str = bib.get("month", "")
+        month_num = get_month_num(month_str)
+        
+        # 3. 计算月份权重
+        # 需求: 时间越早排序越前(1月排在12月前面)，且空月排最后
+        # 因为外层有 reverse=True(数值越大越排前)，所以 1月要给最高分12分，12月给1分，空月给0分
+        month_weight = 13 - month_num if month_num > 0 else 0
+        
+        # (注：如果你其实想要最新的文章排前面，也就是12月在1月前面，请把上面那行换成: month_weight = month_num)
+
+        return (year, month_weight)
 
     data.sort(key=sort_key, reverse=True)
 
