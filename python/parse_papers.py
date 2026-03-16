@@ -171,6 +171,8 @@ def generate_readme(data):
         months_map = {
             'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6,
             'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12,
+            'January':1, 'February':2, 'March':3, 'April':4, 'May':5, 'June':6,
+            'July':7, 'August':8, 'September':9, 'October':10, 'November':11, 'December':12,
             '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, '11':11, '12':12
         }
         for k, v in months_map.items():
@@ -189,9 +191,8 @@ def generate_readme(data):
         month_num = get_month_num(month_str)
         
         # 3. 计算月份权重
-        # 需求: 时间越早排序越前(1月排在12月前面)，且空月排最后
-        # 因为外层有 reverse=True(数值越大越排前)，所以 1月要给最高分12分，12月给1分，空月给0分
-        month_weight = 13 - month_num if month_num > 0 else 0
+        # 需求: 时间越晚排序越前(12月排在1月前面)，且空月排最后
+        month_weight = month_num
         
         # (注：如果你其实想要最新的文章排前面，也就是12月在1月前面，请把上面那行换成: month_weight = month_num)
 
