@@ -28,7 +28,7 @@ This script parses Markdown files from your knowledge base. To ensure the survey
 - `tags`: Categories/fields the paper belongs to.
 - `teaser`: The filename of the teaser image (stored in `database_repo_img_dir`).
 - `bibtex`: The BibTeX citation block.
-- Optional: `code`, `project`, `slide` (URLs to related resources).
+- Optional: `code`, `project`, `slide`, `supplemental` (URLs to related resources).
 
 ### Example Markdown File:
 
