@@ -14,7 +14,7 @@ You can refer to this [example repository](https://github.com/Bigger-and-Stronge
    - `database_repo_img_dir`: Path to your image files in the database repository.
    - `filter_tag`: The specific tag used to filter which papers to include in the survey.
    - `readme_header`: The introductory text (header) for your survey `README.md`.
-3. Add the GitHub Actions workflow: Copy the [sync_papers.yml](./sync_papers.yml) file to the `.github/workflows/` directory in your repository (create the directory if it doesn't exist).
+3. Add the GitHub Actions workflow: You can either copy the contents of [sync_and_update.yml](./sync_and_update.yml) into a new GitHub Actions workflow file or directly copy the file itself into the `.github/workflows/` directory in your repository (create this directory if it doesn't exist).
 4. Configure Repository Secrets: Go to `Settings` -> `Secrets and variables` -> `Actions` -> `Repository secrets` and add:
    - `PRIVATE_REPO_NAME`: The full name of your database repository (e.g., `Username/repo-name`).
    - `PAT_TOKEN`: If your database repository is private, generate a [GitHub Personal Access Token (classic)](https://github.com/settings/tokens) with repository read access and add it here.
