@@ -16,6 +16,12 @@ jobs:
       - name: Checkout Current Repo
         uses: actions/checkout@v4
 
+      - name: Checkout Generate Repo
+        uses: actions/checkout@v4
+        with:
+          repository: Canjia-Huang/auto-survey-generation
+          path: auto-survey-generation
+
       - name: Checkout Private Repo
         uses: actions/checkout@v4
         with:
@@ -29,18 +35,18 @@ jobs:
           python-version: '3.10'
 
 #      - name: List Files
-#        run: ｜
+#        run: |
 #          sudo apt install tree
 #          tree  # 递归列出所有文件
 
       - name: Install dependencies
         run: |
-          cd python
+          cd auto-survey-generation/python
           pip install -r requirements.txt
 
       - name: Run Extraction Script
         run: |
-          cd python
+          cd auto-survey-generation/python
           python parse_papers.py
 
       # (可选) 将生成的 JSON 作为附件上传，方便单独下载
@@ -52,10 +58,7 @@ jobs:
 
       # 提交变动（包括 .pic/ 和 README.md）到当前 GitHub 仓库
       - name: Commit and Push changes
-        run: |
-          # 清理私有仓库，防止它作为子模块或冗余文件被提交
-          rm -rf obsidian-backup 
-          
+        run: |          
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
