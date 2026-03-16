@@ -15,7 +15,7 @@ CONFIG_PATH = ROOT_DIR / "config.json"
 with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
     CONFIG = json.load(f)
 
-REPO_PATH = ROOT_DIR / CONFIG.get("database_repo_name")
+REPO_PATH = ROOT_DIR / "database"
 PAPERS_DIR = REPO_PATH / CONFIG.get("database_repo_papers_dir")
 IMG_SRC_DIR = REPO_PATH / CONFIG.get("database_repo_img_dir")
 IMG_DEST_DIR = ROOT_DIR / ".img"
