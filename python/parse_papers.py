@@ -281,8 +281,8 @@ def generate_readme(data):
         # 生成按钮链接
         links = []
         if bib.get('doi_url'): links.append(f"[[doi]]({bib.get('doi_url')})")
-        if props.get('code'): links.append(f"[[code]]({props.get('code')})")
         if props.get('project'): links.append(f"[[project]]({props.get('project')})")
+        if props.get('code'): links.append(f"[[code]]({props.get('code')})")
         if props.get('slide'): links.append(f"[[slide]]({props.get('slide')})")
         if props.get('supplemental'): links.append(f"[[supplemental]]({props.get('supplemental')})")
         if props.get('data'): links.append(f"[[data]]({props.get('data')})")
