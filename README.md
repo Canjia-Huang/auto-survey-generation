@@ -35,28 +35,17 @@ This script parses Markdown files from your knowledge base. To ensure the survey
 ```markdown
 ---
 tags:
-  - directional
-  - spherical_harmonics
-  - frame_field
-teaser: Pasted image 20250818104813.png
-code: http://www.cad.zju.edu.cn/home/hj/11/SH-cross-frame-1607-JiongCHEN.7z
-slide: https://kenshi84.github.io/misc/3d-frame-field-mcg15-1st.pdf
-bibtex: |-
-  @inproceedings{10.1145/2024156.2024177,
-  author = {Huang, Jin and Tong, Yiying and Wei, Hongyu and Bao, Hujun},
-  title = {Boundary aligned smooth 3D cross-frame field},
-  year = {2011},
-  isbn = {9781450308076},
-  publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
-  url = {https://doi.org/10.1145/2024156.2024177},
-  doi = {10.1145/2024156.2024177},
-  booktitle = {Proceedings of the 2011 SIGGRAPH Asia Conference},
-  articleno = {143},
-  numpages = {8},
-  keywords = {spherical harmonics, hexahedral, N-RoSy frame field},
-  location = {Hong Kong, China},
-  series = {SA '11}}
+  - [tag_name_1]
+  - [tag_name_2]
+  - [tag_name_3]
+  - [...]
+teaser: [img_name.suffix]
+code: [url]
+data: [url]
+project: [url]
+slide: [url]
+supplemental: [url]
+bibtex: [bibtex]
 ---
 
 Your content here...
