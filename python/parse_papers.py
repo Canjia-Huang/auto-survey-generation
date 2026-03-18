@@ -10,10 +10,19 @@ from PIL import Image, ImageOps
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SCRIPT_DIR.parent.parent
 CONFIG_PATH = ROOT_DIR / "config.json"
+RESEARCHERS_PATH = ROOT_DIR / "cg_researchers.json" # 研究者JSON路径
 
 # 加载配置
 with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
     CONFIG = json.load(f)
+
+# 加载研究者主页映射数据
+RESEARCHERS = {}
+if RESEARCHERS_PATH.exists():
+    with open(RESEARCHERS_PATH, 'r', encoding='utf-8') as f:
+        RESEARCHERS = json.load(f)
+else:
+    print(f"未找到 {RESEARCHERS_PATH}，将跳过作者主页链接生成。")
 
 REPO_PATH = ROOT_DIR / "database"
 PAPERS_DIR = REPO_PATH / CONFIG.get("database_repo_papers_dir")
@@ -119,13 +128,14 @@ def process_md_files():
 
             # 提取 frontmatter 的属性到 properties
             properties = {
-                "tags": tags,
-                "teaser": metadata.get('teaser', ''),
+                "bibtex": metadata.get('bibtex', '')
                 "code": metadata.get('code', ''),
+                "data": metadata.get('data', ''),
                 "project": metadata.get('project', ''),
                 "slide": metadata.get('slide', ''),
                 "supplemental": metadata.get('supplemental', ''),
-                "bibtex": metadata.get('bibtex', '')
+                "tags": tags,
+                "teaser": metadata.get('teaser', ''),
             }
 
             bibtex_raw = properties["bibtex"]
@@ -163,16 +173,13 @@ def process_md_files():
 
 
 def generate_readme(data):
-    # 新增月份解析与多级排序逻辑 ---
+    # 月份解析与多级排序逻辑
     def get_month_num(m_str):
         if not m_str: return 0
         m_str = m_str.lower()
-        # 匹配 BibTeX 中常见的月份格式(缩写、全拼或数字)
         months_map = {
             'jan':1, 'feb':2, 'mar':3, 'apr':4, 'may':5, 'jun':6,
             'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12,
-            'January':1, 'February':2, 'March':3, 'April':4, 'May':5, 'June':6,
-            'July':7, 'August':8, 'September':9, 'October':10, 'November':11, 'December':12,
             '1':1, '2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, '10':10, '11':11, '12':12
         }
         for k, v in months_map.items():
@@ -181,27 +188,67 @@ def generate_readme(data):
 
     def sort_key(item):
         bib = item.get("bibtex_parsed", {})
-        
-        # 1. 解析年份
         year_str = bib.get("year", "0")
         year = int(year_str) if year_str.isdigit() else 0
-        
-        # 2. 解析月份
-        month_str = bib.get("month", "")
-        month_num = get_month_num(month_str)
-        
-        # 3. 计算月份权重
-        # 需求: 时间越晚排序越前(12月排在1月前面)，且空月排最后
-        month_weight = month_num
-        
-        # (注：如果你其实想要最新的文章排前面，也就是12月在1月前面，请把上面那行换成: month_weight = month_num)
-
-        return (year, month_weight)
+        month_num = get_month_num(bib.get("month", ""))
+        return (year, month_num)
 
     data.sort(key=sort_key, reverse=True)
 
+    # ================= 新增需求 1: 提取所有 Tags 并去重排序 =================
+    target_tag = CONFIG.get("filter_tag", "").lower()
+    all_tags = set()
+    for item in data:
+        for tag in item.get('properties', {}).get('tags', []):
+            if tag.strip():
+                all_tags.add(tag.strip())
+    
+    # 将 tag 分为 target_tag 和其他 tags
+    actual_target_tag = None
+    other_tags = []
+    for tag in all_tags:
+        if tag.lower() == target_tag:
+            actual_target_tag = tag # 保留原始大小写
+        else:
+            other_tags.append(tag)
+            
+    other_tags.sort(key=lambda x: x.lower()) # 剩余 tag 按字母顺序排列
+    
+    # 组装最终的 tags 列表，确保 filter_tag 在第一位
+    final_tags_list = []
+    if actual_target_tag:
+        final_tags_list.append(actual_target_tag)
+    final_tags_list.extend(other_tags)
+    
+    # 生成 tags 字符串 (例如: `tag1` `tag2`)
+    all_tags_md = " ".join([f"`{t}`" for t in final_tags_list])
+
+    # ================= 新增需求 2: 准备作者链接替换函数 =================
+    # 按名字长度降序排序，防止部分匹配导致嵌套替换（例如匹配了 "Li" 导致 "Hao Li" 替换失败）
+    sorted_researchers = sorted(RESEARCHERS.items(), key=lambda x: len(x[0]), reverse=True)
+
+    def linkify_authors(author_str):
+        if not sorted_researchers:
+            return author_str
+        
+        # BibTeX 中的作者通常用 " and " 分隔，按此拆分可以避免跨作者的错误匹配
+        author_list = [a.strip() for a in author_str.split(" and ")]
+        linked_list = []
+        for a in author_list:
+            for name, url in sorted_researchers:
+                if name in a:
+                    a = a.replace(name, f"[{name}]({url})")
+                    break # 每个作者片段只匹配最长的一个名字，防止嵌套替换
+            linked_list.append(a)
+        
+        return " and ".join(linked_list)
+
+    # ================= 构建 README 内容 =================
     lines = [
-        CONFIG.get("readme_header"),
+        CONFIG.get("readme_header", "# Papers"),
+        "\n\n",
+        "### All Tags\n",
+        all_tags_md,      # 在此处插入所有 Tags
         "\n\n",
         "| Teaser | Information |",
         "| :--- | :--- |"
@@ -216,7 +263,11 @@ def generate_readme(data):
 
         # 处理右栏：信息
         title = f"**{bib.get('title', 'Unknown Title')}**"
-        author = f"*{bib.get('author', 'Unknown Author')}*"
+        
+        # ================= 应用作者替换逻辑 =================
+        raw_author = bib.get('author', 'Unknown Author')
+        linked_author = linkify_authors(raw_author)
+        author = f"*{linked_author}*"
 
         # 将 tags 列表转化为 `tag0`, `tag1` ... 的格式
         tags_list = props.get('tags', [])
@@ -233,7 +284,8 @@ def generate_readme(data):
         if props.get('code'): links.append(f"[[code]]({props.get('code')})")
         if props.get('project'): links.append(f"[[project]]({props.get('project')})")
         if props.get('slide'): links.append(f"[[slide]]({props.get('slide')})")
-        if props.get('supp'): links.append(f"[[supplemental]]({props.get('supplemental')})")
+        if props.get('supplemental'): links.append(f"[[supplemental]]({props.get('supplemental')})")
+        if props.get('data'): links.append(f"[[data]]({props.get('data')})")
         links_str = " &nbsp; ".join(links)
 
         # 拼接表格行 (<br>换行)
