@@ -128,14 +128,14 @@ def process_md_files():
 
             # 提取 frontmatter 的属性到 properties
             properties = {
-                "bibtex": metadata.get('bibtex', '')
+                "bibtex": metadata.get('bibtex', ''),
                 "code": metadata.get('code', ''),
                 "data": metadata.get('data', ''),
                 "project": metadata.get('project', ''),
                 "slide": metadata.get('slide', ''),
                 "supplemental": metadata.get('supplemental', ''),
                 "tags": tags,
-                "teaser": metadata.get('teaser', ''),
+                "teaser": metadata.get('teaser', '')
             }
 
             bibtex_raw = properties["bibtex"]
