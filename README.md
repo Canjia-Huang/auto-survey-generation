@@ -19,7 +19,7 @@ You can refer to this [example repository](https://github.com/Bigger-and-Stronge
    - `PRIVATE_REPO_NAME`: The full name of your database repository (e.g., `Username/repo-name`).
    - `PAT_TOKEN`: If your database repository is private, generate a [GitHub Personal Access Token (classic)](https://github.com/settings/tokens) with repository read access and add it here.
 
-Once configured, you can trigger the `sync-and-update` action manually or rely on the scheduled trigger (default: 10:00 AM Beijing Time daily).
+Once configured, you can trigger the `sync-and-update` action manually or rely on the scheduled trigger (default: 8:00 AM Beijing Time daily).
 
 ## :books: Database Requirements
 
