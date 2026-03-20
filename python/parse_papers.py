@@ -10,7 +10,7 @@ from PIL import Image, ImageOps
 SCRIPT_DIR = Path(__file__).resolve().parent
 ROOT_DIR = SCRIPT_DIR.parent.parent
 CONFIG_PATH = ROOT_DIR / "config.json"
-RESEARCHERS_PATH = SCRIPT_DIR.parent / "cg_researchers.json" # 研究者JSON路径
+RESEARCHERS_PATH = SCRIPT_DIR.parent / "cg_researcher_homepages.json" # 研究者主页JSON路径
 
 # 加载配置
 with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
