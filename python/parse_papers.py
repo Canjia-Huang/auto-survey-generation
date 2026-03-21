@@ -224,20 +224,22 @@ def generate_readme(data):
     all_tags_md = " ".join([f"`{t}`" for t in final_tags_list])
 
     # ================= 新增需求 2: 准备作者链接替换函数 =================
-    # 1. 预处理研究者名单：生成包含 "姓, 名" 和 "名 姓" 的搜索列表
+    # 1. 预处理研究者名单：生成包含三种格式的搜索列表
     search_list = []
     for raw_name, url in RESEARCHERS.items():
         # 添加原始格式 (例如: "Wang, Xiaoming")
         search_list.append((raw_name, url))
         
-        # 如果包含逗号，尝试生成反转格式 (例如: "Xiaoming Wang")
         if "," in raw_name:
             parts = [p.strip() for p in raw_name.split(",")]
             if len(parts) == 2:
-                reversed_name = f"{parts[1]} {parts[0]}"
-                search_list.append((reversed_name, url))
+                last, first = parts[0], parts[1]
+                # 添加变体: "Xiaoming Wang" (名 姓)
+                search_list.append((f"{first} {last}", url))
+                # 添加变体: "Wang Xiaoming" (姓 名)
+                search_list.append((f"{last} {first}", url))
 
-    # 2. 按名字长度降序排序，防止短名字（如 "Li"）误匹配长名字（如 "Hao Li"）中的部分
+    # 2. 按名字长度降序排序，防止短名字（如 "Li"）误匹配长名字（如 "Li, Hao"）
     search_list.sort(key=lambda x: len(x[0]), reverse=True)
 
     def linkify_authors(author_str):
@@ -251,13 +253,16 @@ def generate_readme(data):
         for author_segment in author_list:
             matched = False
             for name_variant, url in search_list:
-                # 检查当前作者片段是否包含该名字变体
-                if name_variant in author_segment:
-                    # 执行替换并标记已匹配
-                    author_segment = author_segment.replace(name_variant, f"[{name_variant}]({url})")
+                # 使用正则表达式进行【完整单词】匹配
+                # \b 表示单词边界，确保 "Li" 不会匹配 "Liang"
+                # re.escape 会处理名字中可能存在的特殊字符（如逗号）
+                pattern = r'\b' + re.escape(name_variant) + r'\b'
+                
+                if re.search(pattern, author_segment):
+                    # 使用 re.sub 进行替换，count=1 确保只替换一次
+                    author_segment = re.sub(pattern, f"[{name_variant}]({url})", author_segment, count=1)
                     matched = True
-                    # 匹配到一个变体后即停止（防止同一个作者被重复替换两次，如 "Wang, Xiaoming" 替换后又被 "Xiaoming" 替换）
-                    break 
+                    break # 匹配到一个变体后跳出，处理下一个作者
             linked_list.append(author_segment)
         
         return " and ".join(linked_list)
