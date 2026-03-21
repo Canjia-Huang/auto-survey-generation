@@ -224,22 +224,41 @@ def generate_readme(data):
     all_tags_md = " ".join([f"`{t}`" for t in final_tags_list])
 
     # ================= 新增需求 2: 准备作者链接替换函数 =================
-    # 按名字长度降序排序，防止部分匹配导致嵌套替换（例如匹配了 "Li" 导致 "Hao Li" 替换失败）
-    sorted_researchers = sorted(RESEARCHERS.items(), key=lambda x: len(x[0]), reverse=True)
+    # 1. 预处理研究者名单：生成包含 "姓, 名" 和 "名 姓" 的搜索列表
+    search_list = []
+    for raw_name, url in RESEARCHERS.items():
+        # 添加原始格式 (例如: "Wang, Xiaoming")
+        search_list.append((raw_name, url))
+        
+        # 如果包含逗号，尝试生成反转格式 (例如: "Xiaoming Wang")
+        if "," in raw_name:
+            parts = [p.strip() for p in raw_name.split(",")]
+            if len(parts) == 2:
+                reversed_name = f"{parts[1]} {parts[0]}"
+                search_list.append((reversed_name, url))
+
+    # 2. 按名字长度降序排序，防止短名字（如 "Li"）误匹配长名字（如 "Hao Li"）中的部分
+    search_list.sort(key=lambda x: len(x[0]), reverse=True)
 
     def linkify_authors(author_str):
-        if not sorted_researchers:
+        if not search_list:
             return author_str
         
-        # BibTeX 中的作者通常用 " and " 分隔，按此拆分可以避免跨作者的错误匹配
+        # BibTeX 中的作者通常用 " and " 分隔
         author_list = [a.strip() for a in author_str.split(" and ")]
         linked_list = []
-        for a in author_list:
-            for name, url in sorted_researchers:
-                if name in a:
-                    a = a.replace(name, f"[{name}]({url})")
-                    break # 每个作者片段只匹配最长的一个名字，防止嵌套替换
-            linked_list.append(a)
+        
+        for author_segment in author_list:
+            matched = False
+            for name_variant, url in search_list:
+                # 检查当前作者片段是否包含该名字变体
+                if name_variant in author_segment:
+                    # 执行替换并标记已匹配
+                    author_segment = author_segment.replace(name_variant, f"[{name_variant}]({url})")
+                    matched = True
+                    # 匹配到一个变体后即停止（防止同一个作者被重复替换两次，如 "Wang, Xiaoming" 替换后又被 "Xiaoming" 替换）
+                    break 
+            linked_list.append(author_segment)
         
         return " and ".join(linked_list)
 
